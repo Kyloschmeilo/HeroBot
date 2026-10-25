@@ -2194,7 +2194,7 @@ public final class ScriptCanvas {
 
     /** Since 26.3 (SDL) typed characters only arrive while text input is switched on for an owner. */
     private void setTextInput(boolean active) {
-        Minecraft.getInstance().onTextInputFocusChange(this, active);
+        Minecraft.getInstance().textInputManager().onTextInputFocusChange(this, active);
     }
 
     private void commentEditSnapshot() {
