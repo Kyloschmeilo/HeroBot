@@ -1,0 +1,37 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+Type-safe project accessors is an incubating feature.
+> Task :build-logic:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :build-logic:generateExternalPluginSpecBuilders FROM-CACHE
+> Task :build-logic:extractPrecompiledScriptPluginPlugins FROM-CACHE
+> Task :build-logic:compilePluginsBlocks FROM-CACHE
+> Task :build-logic:generatePrecompiledScriptPluginAccessors FROM-CACHE
+> Task :build-logic:generateScriptPluginAdapters FROM-CACHE
+> Task :build-logic:compileKotlin FROM-CACHE
+> Task :build-logic:compileJava NO-SOURCE
+> Task :build-logic:pluginDescriptors
+> Task :build-logic:processResources
+> Task :build-logic:classes
+> Task :build-logic:jar
+
+> Configure project :herobot-mod
+Fabric Loom: 1.17.20
+
+> Task :herobot-common:compileJava FROM-CACHE
+> Task :herobot-common:processResources NO-SOURCE
+> Task :herobot-common:classes UP-TO-DATE
+> Task :herobot-common:jar
+> Task :herobot-mod:processResources
+> Task :herobot-mod:compileJava FROM-CACHE
+> Task :herobot-mod:classes
+> Task :herobot-mod:compileClientJava FROM-CACHE
+> Task :herobot-mod:processClientResources
+> Task :herobot-mod:clientClasses
+> Task :herobot-mod:shadowJar
+
+> Task :buildFabric
+Built into /home/runner/work/HeroBot/HeroBot/build/libs/26.3-2.7.2+v261025_1752:
+  herobot-fabric-26.3-2.7.2+v261025.jar
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1792950718148.json
+
+BUILD SUCCESSFUL in 24s
+17 actionable tasks: 8 executed, 9 from cache
