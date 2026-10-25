@@ -37,3 +37,17 @@ jobs:
         if: success()
         continue-on-error: true
         run: python3 tools/check-mixin-targets-ci.py --github
+
+      - name: Smoke test on a Fabric server
+        if: success()
+        continue-on-error: true
+        run: |
+          bash tools/smoke-test/run.sh fabric
+          python3 tools/smoke-test/report.py fabric herobot-mod/run/logs/latest.log --github
+
+      - name: Smoke test on a Paper server
+        if: success()
+        continue-on-error: true
+        run: |
+          bash tools/smoke-test/run.sh paper
+          python3 tools/smoke-test/report.py paper herobot-plugin/run/logs/latest.log --github

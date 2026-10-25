@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "HeroBot smoke test",
+    "min_format": 82,
+    "max_format": 4096
+  }
+}

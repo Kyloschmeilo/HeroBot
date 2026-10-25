@@ -17,7 +17,7 @@ paperweight = "2.0.0-beta.24"
 
 # Shared libraries
 pathetic = "5.5.2"
-voicechat-mod = "2.6.27"
+voicechat-mod = "2.6.25"
 voicechat-api = "2.6.20"
 
 # Packet interceptors the dev servers run HeroBot alongside
