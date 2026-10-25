@@ -235,11 +235,16 @@ if os.path.exists(dump_file):
             text = f"{cls} {method}: not found" + (f"; methods: {sorted(k for k in table if k != '__fields__')}" if table else "")
         else:
             text = "\n".join(f"{method}{dd}\n" + "\n".join(e["code"]) for dd, e in table[method].items())
+            # keep annotations short: drop indentation, constant pool indices and package prefixes
+            text = re.sub(r"^\s+", "", text, flags=re.M)
+            text = re.sub(r"#\d+(,\s*\d+)?\s+//", "//", text)
+            text = text.replace("net/minecraft/", "")
         print(f"== javap {cls} {method}\n{text}")
         if GITHUB:
-            esc = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-            for i in range(0, min(len(esc), 24000), 6000):
-                print(f"::notice title=javap {cls.split('.')[-1]}.{method} ({i // 6000 + 1})::{esc[i:i + 6000]}")
+            # GitHub cuts annotation messages at 4096 characters
+            for n, i in enumerate(range(0, min(len(text), 3500 * 10), 3500)):
+                esc = text[i:i + 3500].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                print(f"::notice title=javap {cls.split('.')[-1]}.{method} ({n + 1})::{esc}")
 
 print(f"Checked {checked} mixins against {len(JARS)} jar(s): {', '.join(os.path.basename(j) for j in JARS)}")
 print(f"{len(problems)} problem(s)")

@@ -7,7 +7,7 @@ import re
 import sys
 
 MAX_ANNOTATIONS = 9
-CHUNK = 6000
+CHUNK = 3500  # GitHub cuts annotation messages at 4096 characters
 
 
 def escape(text: str) -> str:
