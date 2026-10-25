@@ -1,0 +1,30 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Fabric mod and Paper plugin
+        run: |
+          chmod +x gradlew
+          ./gradlew buildAll --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: herobot-jars
+          path: build/libs/**/*.jar
+          if-no-files-found: error
