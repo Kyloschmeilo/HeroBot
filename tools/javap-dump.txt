@@ -1,2 +1,7 @@
 # Vanilla methods whose 26.3 bytecode the CI prints as notices (class, space, method name).
-net.minecraft.world.level.block.piston.PistonMovingBlockEntity moveCollidedEntities
+net.minecraft.world.entity.Entity canSimulateMovement
+net.minecraft.world.entity.Entity isLocalInstanceAuthoritative
+net.minecraft.world.entity.Entity getMoveSimulationType
+net.minecraft.world.entity.player.Player getMoveSimulationType
+net.minecraft.server.level.ServerPlayer getMoveSimulationType
+net.minecraft.world.entity.player.Player isClientAuthoritative
