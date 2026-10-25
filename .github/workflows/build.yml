@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -63,24 +61,3 @@ jobs:
             python3 .github/scripts/report-build-errors.py clienttest.log
           fi
           python3 tools/smoke-test/report.py client "$run/logs/latest.log" --github
-
-      # The logs and screenshots go to the ci-logs branch so they can be read with plain git.
-      - name: Publish logs
-        if: always()
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          out=$RUNNER_TEMP/ci-logs
-          mkdir -p "$out/server" "$out/client"
-          cp build.log mixin-check.log clienttest.log "$out/" 2>/dev/null || true
-          cp -r herobot-mod/run/logs herobot-mod/run/crash-reports "$out/server/" 2>/dev/null || true
-          run=herobot-mod/build/run/clientGameTest
-          cp -r "$run/logs" "$run/screenshots" "$run/crash-reports" "$out/client/" 2>/dev/null || true
-          rm -f "$out"/*/logs/*.gz
-          cd "$out"
-          echo "run ${{ github.run_id }} of ${{ github.sha }}" > README.txt
-          git init -q
-          git add -A
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "Logs of run ${{ github.run_id }}"
-          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-logs

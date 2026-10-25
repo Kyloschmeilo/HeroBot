@@ -23,7 +23,7 @@ Die fertigen Jars landen in `build/libs/<mc-version>-<version>+v<datum>/`:
 | Carpet (compileOnly) | 26.2 | 26.3 |
 | Paper Dev-Bundle | 26.2.build.121-stable | 26.3.build.209-stable |
 | paperweight-userdev | 2.0.0-beta.23 | 2.0.0-beta.24 |
-| Simple Voice Chat (nur Dev-Runs) | 2.6.21 | 2.6.27 |
+| Simple Voice Chat (nur Dev-Runs) | 2.6.21 | 2.6.25 |
 | `minecraft` in fabric.mod.json | >=26 <27 | ~26.3 |
 
 ## Code-Änderungen
@@ -50,10 +50,23 @@ Die fertigen Jars landen in `build/libs/<mc-version>-<version>+v<datum>/`:
   und mit `require = 0` abgesichert; `EntityRenderDispatcher.shouldRender` hat einen zusätzlichen Partial-Tick-Parameter.
 - `RenderPipeline` liegt jetzt in `com.mojang.renderpearl.api.pipeline`, `ConfirmLinkScreen` will eine `URI`.
 
-## Nicht gegen die echten 26.3-Klassen geprüft
+## Tests (nur Fabric)
 
-Die Portierung wurde anhand der NeoForge-Porting-Notizen, der Fabric-API-, Carpet- und Paper-Quellen für 26.3 gemacht,
-aber ohne Kompilieren. Falls `buildAll` oder der Spielstart fehlschlägt, zuerst hier schauen:
-`Swings` (Signatur von `swing(hand, SwingAnimation, boolean)`), `ScriptCanvas.setTextInput`,
-`ClientPlayerController.dropSelected`, `DelayedQueue` sowie Mixins mit `require = 1`, deren Ziel sich geändert haben könnte
-(die Fehlermeldung nennt dann die Mixin-Klasse).
+Die GitHub-Action baut nur noch die Fabric-Mod (`gradlew buildFabric`) und testet sie:
+
+- **Mixin-Ziele:** `tools/check-mixin-targets-ci.py` prüft jedes Mixin gegen die echten 26.3-Klassen.
+- **Server-Smoke-Test:** `tools/smoke-test/run.sh` startet einen Fabric-Dev-Server mit dem Datenpaket aus
+  `tools/smoke-test/datapack`. Zwei Bots spawnen und durchlaufen diese Prüfungen:
+  - Schwert-Treffer, Axt gegen Schild
+  - Laufen/Springen, Schleimblock-Kolben, TNT-Schaden und -Rückstoß
+  - Abbauen, Platzieren, Droppen, Windladung, Boot
+  - `/delayed`, Respawn, Disconnect, Befehle nach `/reload`
+
+  Jede Prüfung schreibt `SMOKE OK|FAIL <name>` ins Log.
+- **Client-Test:** `gradlew :herobot-mod:runClientGameTest` (Quellcode in `herobot-mod/src/gametest`) startet das echte Spiel
+  mit einer Einzelspielerwelt. Geprüft werden alle Mixins, Bots auf dem Client, die Fernsteuerung des Spielers
+  (Springen, Droppen, Schwingen) und der HeroScript-Editor: Öffnen, Kommentar tippen, Strg+Z, Schließen.
+
+Frisch gespawnte Bots sind wie echte Spieler die ersten 60 Ticks unverwundbar (Vanilla wartet, bis der „Client“ geladen ist).
+
+Das Paper-Plugin wird in diesem Fork nicht gebaut oder getestet.
