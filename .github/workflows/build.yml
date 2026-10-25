@@ -9,9 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
@@ -20,8 +20,12 @@ jobs:
 
       - name: Build Fabric mod and Paper plugin
         run: |
-          chmod +x gradlew
-          ./gradlew buildAll --stacktrace
+          set -o pipefail
+          ./gradlew buildAll --continue --console=plain 2>&1 | tee build.log
+
+      - name: Report build errors
+        if: failure()
+        run: python3 .github/scripts/report-build-errors.py build.log
 
       - uses: actions/upload-artifact@v4
         with:
