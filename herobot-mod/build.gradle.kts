@@ -135,3 +135,16 @@ publishing {
         }
     }
 }
+
+// Client game test: ./gradlew :herobot-mod:runClientGameTest starts the game with HeroBot and
+// src/gametest, see HeroBotClientGameTest. Not part of the published jars.
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "herobot-gametest"
+        enableGameTests = false
+        enableClientGameTests = true
+        eula = true
+        clearRunDirectory = false
+    }
+}

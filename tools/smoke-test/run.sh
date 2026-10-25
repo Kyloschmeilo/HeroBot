@@ -19,12 +19,23 @@ if [ "$platform" = paper ]; then
   # /delayed only exists in the Fabric mod
   rm "$pack/data/herobot_smoke/function/fabric_only.mcfunction"
   sed -i '/fabric_only/d' "$pack"/data/herobot_smoke/function/*.mcfunction
+  # Paper registers plugin commands after the data packs load, so functions using /player fail
+  # to parse on the first load. Start the test only after a data reload.
+  cat > "$pack/data/herobot_smoke/function/load.mcfunction" <<'MCF'
+scoreboard objectives add smoke dummy
+execute if score paper_reloaded smoke matches 1 run function herobot_smoke:start
+execute unless score paper_reloaded smoke matches 1 run schedule function herobot_smoke:paper_reload 40t
+MCF
+  cat > "$pack/data/herobot_smoke/function/paper_reload.mcfunction" <<'MCF'
+scoreboard players set paper_reloaded smoke 1
+minecraft:reload
+MCF
 fi
 
 cat > "$run/server.properties" <<'PROPS'
 online-mode=false
 level-type=minecraft\:flat
-difficulty=easy
+difficulty=peaceful
 spawn-protection=0
 function-permission-level=4
 view-distance=4
@@ -34,5 +45,5 @@ generate-structures=false
 PROPS
 echo "eula=true" > "$run/eula.txt"
 
-timeout 900 "$root/gradlew" -p "$root" "$task" --console=plain < /dev/null
+timeout 600 "$root/gradlew" -p "$root" "$task" --console=plain < /dev/null
 echo "server exited with code $?"

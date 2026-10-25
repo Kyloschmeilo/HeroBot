@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "herobot-gametest",
+  "version": "1.0.0",
+  "name": "HeroBot Game Tests",
+  "description": "Client game test that starts the game with HeroBot and exercises bots, remote control and the HeroScript editor.",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "hero.bane.herobot.gametest.HeroBotClientGameTest"
+    ]
+  },
+  "depends": {
+    "herobot": "*",
+    "fabric-api": "*"
+  }
+}

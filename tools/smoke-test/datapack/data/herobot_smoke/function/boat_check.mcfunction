@@ -5,7 +5,7 @@ execute unless score boat_z smoke > boat_z_before smoke run say SMOKE FAIL boat_
 ride Bob dismount
 kill @e[type=minecraft:oak_boat]
 # ping delays knockback
-player Bob ping 100
+player Bob ping delay 100
 tp Bob 0.5 -60 -2.5
 player Alice hotbar 1
 player Alice look upon Bob

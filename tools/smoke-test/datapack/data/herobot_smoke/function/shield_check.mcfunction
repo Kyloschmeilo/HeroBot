@@ -4,7 +4,7 @@ execute unless score shield_cd smoke matches 1.. run say SMOKE FAIL shield_disab
 player Bob use
 player Bob stop
 execute store result score bob_z_before smoke run data get entity Bob Pos[2] 100
-player Bob look south
+player Bob look north
 player Bob sprint
 player Bob move forward
 player Bob jump continuous

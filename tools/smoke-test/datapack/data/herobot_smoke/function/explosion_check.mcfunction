@@ -1,3 +1,4 @@
+difficulty peaceful
 execute store result score bob_hp smoke run data get entity Bob Health
 execute store result score bob_x smoke run data get entity Bob Pos[0] 100
 execute if score bob_hp smoke < bob_hp_before smoke run say SMOKE OK explosion_damage

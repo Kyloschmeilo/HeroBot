@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
 
@@ -51,3 +51,15 @@ jobs:
         run: |
           bash tools/smoke-test/run.sh paper
           python3 tools/smoke-test/report.py paper herobot-plugin/run/logs/latest.log --github
+
+      - name: Client game test (Fabric)
+        if: success()
+        continue-on-error: true
+        run: |
+          run=herobot-mod/build/run/clientGameTest
+          mkdir -p "$run"
+          printf 'version:4896\npreferredGraphicsBackend:"opengl"\n' > "$run/options.txt"
+          if ! timeout 1200 ./gradlew :herobot-mod:runClientGameTest --console=plain > clienttest.log 2>&1; then
+            python3 .github/scripts/report-build-errors.py clienttest.log
+          fi
+          python3 tools/smoke-test/report.py client "$run/logs/latest.log" --github
