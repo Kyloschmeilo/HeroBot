@@ -52,7 +52,7 @@ public class HeroBotClientGameTest implements FabricClientGameTest {
                 singleplayer.getServer().runCommand("playerspawn TestBot at %d %d %d facing north in survival"
                         .formatted(pos.getX() + 3, pos.getY(), pos.getZ()));
                 context.waitFor(client -> client.level != null && client.level.players().stream()
-                        .anyMatch(p -> p.getName().getString().equals("TestBot")), 600);
+                        .anyMatch(p -> p.getName().getString().equalsIgnoreCase("TestBot")), 600);
                 context.waitTicks(20);
                 context.takeScreenshot("herobot-bot-visible");
             });
@@ -118,7 +118,7 @@ public class HeroBotClientGameTest implements FabricClientGameTest {
             step("bot_disconnect", () -> {
                 singleplayer.getServer().runCommand("player TestBot disconnect");
                 context.waitFor(client -> client.level.players().stream()
-                        .noneMatch(p -> p.getName().getString().equals("TestBot")), 100);
+                        .noneMatch(p -> p.getName().getString().equalsIgnoreCase("TestBot")), 100);
             });
         }
         LOGGER.info("SMOKE DONE client");

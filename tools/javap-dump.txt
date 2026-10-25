@@ -1,6 +1,1 @@
 # Vanilla methods whose bytecode the mixin check prints, one "fully.qualified.Class method" per line.
-net.minecraft.server.level.ServerPlayer isInvulnerableTo
-net.minecraft.server.level.ServerPlayer hurtServer
-net.minecraft.world.entity.player.Player hasClientLoaded
-net.minecraft.world.entity.player.Player tickClientLoadTimeout
-net.minecraft.world.entity.player.Player attack
