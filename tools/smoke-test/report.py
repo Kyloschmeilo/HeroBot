@@ -1,6 +1,6 @@
 """Summarises a smoke-test server log: which checks passed, which failed, and any errors.
 
-    python3 tools/smoke-test/report.py <platform> <latest.log> [--github]
+    python3 tools/smoke-test/report.py <name> <latest.log> [--github]
 """
 import re
 import sys
@@ -14,6 +14,7 @@ except FileNotFoundError:
 
 ok = [m.group(1) for line in lines if (m := re.search(r"SMOKE OK (\S+)", line))]
 fail = [m.group(1) for line in lines if (m := re.search(r"SMOKE FAIL (\S+)", line))]
+info = [line.split("SMOKE INFO ", 1)[1] for line in lines if "SMOKE INFO " in line]
 started = any("SMOKE START" in line for line in lines)
 done = any("SMOKE DONE" in line for line in lines)
 
@@ -34,7 +35,7 @@ while i < len(lines):
 
 summary = [f"{platform}: started={started} done={done} ok={len(ok)} fail={len(fail)}",
            "OK: " + ", ".join(ok),
-           "FAIL: " + (", ".join(fail) or "-")]
+           "FAIL: " + (", ".join(fail) or "-")] + ["INFO " + i for i in info]
 print("\n".join(summary))
 print(f"{len(problems)} error block(s)")
 for p in problems:

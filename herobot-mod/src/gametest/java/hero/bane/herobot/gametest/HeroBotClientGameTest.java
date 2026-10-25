@@ -53,6 +53,8 @@ public class HeroBotClientGameTest implements FabricClientGameTest {
                         .formatted(pos.getX() + 3, pos.getY(), pos.getZ()));
                 context.waitFor(client -> client.level != null && client.level.players().stream()
                         .anyMatch(p -> p.getName().getString().equals("TestBot")), 600);
+                context.waitTicks(20);
+                context.takeScreenshot("herobot-bot-visible");
             });
 
             step("bot_actions", () -> {
@@ -86,12 +88,15 @@ public class HeroBotClientGameTest implements FabricClientGameTest {
                 context.getInput().pressKey(HeroBotClient.openAiEditorKey);
                 context.waitForScreen(AiEditorScreen.class);
                 context.waitTicks(20);
+                context.takeScreenshot("herobot-editor");
             });
 
             step("editor_comment_typing", () -> {
                 context.runOnClient(client -> ((AiEditorScreen) client.gui.screen()).addComment(0, 0, -1));
                 context.waitTick();
                 context.getInput().typeChars("hello bot");
+                context.waitTick();
+                context.takeScreenshot("herobot-editor-comment");
                 context.getInput().pressKey(SDLScancode.SDL_SCANCODE_ESCAPE);
                 context.waitTick();
                 String text = context.computeOnClient(client -> {

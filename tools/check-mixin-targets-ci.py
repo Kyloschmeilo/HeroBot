@@ -240,11 +240,6 @@ if os.path.exists(dump_file):
             text = re.sub(r"#\d+(,\s*\d+)?\s+//", "//", text)
             text = text.replace("net/minecraft/", "")
         print(f"== javap {cls} {method}\n{text}")
-        if GITHUB:
-            # GitHub cuts annotation messages at 4096 characters
-            for n, i in enumerate(range(0, min(len(text), 3500 * 10), 3500)):
-                esc = text[i:i + 3500].replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                print(f"::notice title=javap {cls.split('.')[-1]}.{method} ({n + 1})::{esc}")
 
 print(f"Checked {checked} mixins against {len(JARS)} jar(s): {', '.join(os.path.basename(j) for j in JARS)}")
 print(f"{len(problems)} problem(s)")

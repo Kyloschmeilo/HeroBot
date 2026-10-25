@@ -1,0 +1,2 @@
+say SMOKE DONE
+stop

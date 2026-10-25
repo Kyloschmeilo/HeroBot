@@ -33,3 +33,16 @@ tasks.register<Sync>("buildAll") {
         destinationDir.listFiles()?.sorted()?.forEach { logger.lifecycle("  ${it.name}") }
     }
 }
+
+tasks.register<Sync>("buildFabric") {
+    group = "herobot"
+    description = "Builds only the Fabric mod into a build/libs generation folder."
+
+    from(project(":herobot-mod").tasks.named("shadowJar"))
+    into(layout.buildDirectory.dir("libs/$generation"))
+
+    doLast {
+        logger.lifecycle("Built into ${destinationDir}:")
+        destinationDir.listFiles()?.sorted()?.forEach { logger.lifecycle("  ${it.name}") }
+    }
+}

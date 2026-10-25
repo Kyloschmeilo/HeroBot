@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -18,10 +20,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Fabric mod and Paper plugin
+      - name: Build the Fabric mod
         run: |
           set -o pipefail
-          ./gradlew buildAll --continue --console=plain 2>&1 | tee build.log
+          ./gradlew buildFabric --continue --console=plain 2>&1 | tee build.log
 
       - name: Report build errors
         if: failure()
@@ -29,33 +31,31 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: herobot-jars
+          name: herobot-fabric
           path: build/libs/**/*.jar
           if-no-files-found: error
 
       - name: Check mixin targets against the Minecraft classes
         if: success()
         continue-on-error: true
-        run: python3 tools/check-mixin-targets-ci.py --github
+        run: |
+          set -o pipefail
+          python3 tools/check-mixin-targets-ci.py --github 2>&1 | tee mixin-check.log
 
       - name: Smoke test on a Fabric server
         if: success()
         continue-on-error: true
         run: |
-          bash tools/smoke-test/run.sh fabric
-          python3 tools/smoke-test/report.py fabric herobot-mod/run/logs/latest.log --github
+          bash tools/smoke-test/run.sh
+          python3 tools/smoke-test/report.py server herobot-mod/run/logs/latest.log --github
 
-      - name: Smoke test on a Paper server
+      - name: Client game test
         if: success()
         continue-on-error: true
         run: |
-          bash tools/smoke-test/run.sh paper
-          python3 tools/smoke-test/report.py paper herobot-plugin/run/logs/latest.log --github
-
-      - name: Client game test (Fabric)
-        if: success()
-        continue-on-error: true
-        run: |
+          # software OpenGL/Vulkan for the virtual display, like Fabric API's own client tests
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mesa-vulkan-drivers libgl1-mesa-dri xvfb > /dev/null
           run=herobot-mod/build/run/clientGameTest
           mkdir -p "$run"
           printf 'version:4896\npreferredGraphicsBackend:"opengl"\n' > "$run/options.txt"
@@ -63,3 +63,24 @@ jobs:
             python3 .github/scripts/report-build-errors.py clienttest.log
           fi
           python3 tools/smoke-test/report.py client "$run/logs/latest.log" --github
+
+      # The logs and screenshots go to the ci-logs branch so they can be read with plain git.
+      - name: Publish logs
+        if: always()
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          out=$RUNNER_TEMP/ci-logs
+          mkdir -p "$out/server" "$out/client"
+          cp build.log mixin-check.log clienttest.log "$out/" 2>/dev/null || true
+          cp -r herobot-mod/run/logs herobot-mod/run/crash-reports "$out/server/" 2>/dev/null || true
+          run=herobot-mod/build/run/clientGameTest
+          cp -r "$run/logs" "$run/screenshots" "$run/crash-reports" "$out/client/" 2>/dev/null || true
+          rm -f "$out"/*/logs/*.gz
+          cd "$out"
+          echo "run ${{ github.run_id }} of ${{ github.sha }}" > README.txt
+          git init -q
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "Logs of run ${{ github.run_id }}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-logs
