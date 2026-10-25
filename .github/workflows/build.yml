@@ -32,3 +32,8 @@ jobs:
           name: herobot-jars
           path: build/libs/**/*.jar
           if-no-files-found: error
+
+      - name: Check mixin targets against the Minecraft classes
+        if: success()
+        continue-on-error: true
+        run: python3 tools/check-mixin-targets-ci.py --github
