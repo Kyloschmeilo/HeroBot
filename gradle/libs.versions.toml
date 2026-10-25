@@ -1,23 +1,23 @@
 [versions]
 java = "25"
-minecraft = "26.2"
+minecraft = "26.3"
 
-compat-range = ">=26 <27"
+compat-range = "~26.3"
 compat-api = "26.1"
 
 # Fabric (mod)
 loom = "1.17.20"
-fabric-loader = "0.19.3"
-fabric-api = "0.158.0+26.2"
-carpet = "26.2"
+fabric-loader = "0.20.1"
+fabric-api = "0.165.0+26.3"
+carpet = "26.3"
 
 # Paper (plugin)
-paper = "26.2.build.121-stable"
-paperweight = "2.0.0-beta.23"
+paper = "26.3.build.209-stable"
+paperweight = "2.0.0-beta.24"
 
 # Shared libraries
 pathetic = "5.5.2"
-voicechat-mod = "2.6.21"
+voicechat-mod = "2.6.27"
 voicechat-api = "2.6.20"
 
 # Packet interceptors the dev servers run HeroBot alongside

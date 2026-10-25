@@ -14,9 +14,9 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
+import org.lwjgl.sdl.SDLScancode;
 
 public final class BlockPalette {
     private static final int ROW_H = 13;
@@ -231,13 +231,13 @@ public final class BlockPalette {
     public boolean keyPressed(KeyEvent e) {
         if (!searchFocused) return false;
         int key = e.key();
-        if (key == GLFW.GLFW_KEY_ESCAPE) {
+        if (key == SDLScancode.SDL_SCANCODE_ESCAPE) {
             if (searchBox != null) searchBox.setValue("");
             refreshQuery();
             unfocusSearch();
             return true;
         }
-        if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
+        if (key == SDLScancode.SDL_SCANCODE_RETURN || key == SDLScancode.SDL_SCANCODE_KP_ENTER) {
             unfocusSearch();
             return true;
         }
@@ -349,8 +349,7 @@ public final class BlockPalette {
     }
 
     private static boolean shiftHeld() {
-        var window = Minecraft.getInstance().getWindow();
-        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_SHIFT)
-                || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_SHIFT);
+        return InputConstants.isKeyDown(SDLScancode.SDL_SCANCODE_LSHIFT)
+                || InputConstants.isKeyDown(SDLScancode.SDL_SCANCODE_RSHIFT);
     }
 }

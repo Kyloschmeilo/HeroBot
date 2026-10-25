@@ -18,8 +18,8 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.NonNull;
-import org.lwjgl.glfw.GLFW;
 
+import java.net.URI;
 import java.util.*;
 import java.util.function.Consumer;
 import hero.bane.herobot.common.ai.block.BlockDefRegistry;
@@ -30,6 +30,8 @@ import hero.bane.herobot.common.ai.block.ParamSlot;
 import hero.bane.herobot.common.ai.block.ParamType;
 import hero.bane.herobot.common.ai.block.Wire;
 import hero.bane.herobot.common.ai.block.BlockDef;
+import org.lwjgl.sdl.SDLScancode;
+import org.lwjgl.sdl.SDLKeycode;
 
 public final class AiEditorScreen extends Screen {
     private AiScript script = new AiScript("untitled");
@@ -608,7 +610,7 @@ public final class AiEditorScreen extends Screen {
     }
 
     public void openTutorial() {
-        ConfirmLinkScreen.confirmLinkNow(this, TUTORIAL_URL);
+        ConfirmLinkScreen.confirmLinkNow(this, URI.create(TUTORIAL_URL));
     }
 
     private int settingsRowY(int y) { return y + 30; }
@@ -817,13 +819,12 @@ public final class AiEditorScreen extends Screen {
     }
 
     private boolean sortHoldHeld() {
-        var window = Minecraft.getInstance().getWindow();
         if (sortHoldMouse) {
-            return GLFW.glfwGetMouseButton(window.handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+            return Minecraft.getInstance().mouseHandler.isLeftPressed();
         }
-        return InputConstants.isKeyDown(window, GLFW.GLFW_KEY_D)
-                && (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT_CONTROL)
-                || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT_CONTROL));
+        return InputConstants.isKeyDown(SDLScancode.SDL_SCANCODE_D)
+                && (InputConstants.isKeyDown(SDLScancode.SDL_SCANCODE_LCTRL)
+                || InputConstants.isKeyDown(SDLScancode.SDL_SCANCODE_RCTRL));
     }
 
     public void startRecording() {
@@ -1886,7 +1887,7 @@ public final class AiEditorScreen extends Screen {
         if (settingsOpen) return settingsClick(mx, my);
         if (shortcutsOpen) { shortcutsOpen = false; return true; }
 
-        if (handleChromeClick(mx, my, (event.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0)) return true;
+        if (handleChromeClick(mx, my, (event.modifiers() & SDLKeycode.SDL_KMOD_SHIFT) != 0)) return true;
 
         if (!topCollapsed && toolbar.mouseClicked(mx, my)) return true;
         if (!leftCollapsed) {
@@ -1900,8 +1901,8 @@ public final class AiEditorScreen extends Screen {
             if (palette.inside(mx, my)) return true;
         }
         if (!rightCollapsed && (varPanel.menuOpen() || varPanel.inside(mx, my))) return varPanel.mousePressed(mx, my);
-        boolean ctrl = (event.modifiers() & GLFW.GLFW_MOD_CONTROL) != 0;
-        boolean shift = (event.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
+        boolean ctrl = (event.modifiers() & SDLKeycode.SDL_KMOD_CTRL) != 0;
+        boolean shift = (event.modifiers() & SDLKeycode.SDL_KMOD_SHIFT) != 0;
         return canvas.mouseClicked(mx, my, button, ctrl, shift, doubled);
     }
 
@@ -1979,30 +1980,30 @@ public final class AiEditorScreen extends Screen {
         if (exprEditor.isActive()) return exprEditor.keyPressed(event);
         if (selectorEditor.isActive()) return selectorEditor.keyPressed(event);
         if (canvas.isEditingComment()) {
-            boolean cmtCtrl = (event.modifiers() & GLFW.GLFW_MOD_CONTROL) != 0;
-            boolean cmtShift = (event.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
+            boolean cmtCtrl = (event.modifiers() & SDLKeycode.SDL_KMOD_CTRL) != 0;
+            boolean cmtShift = (event.modifiers() & SDLKeycode.SDL_KMOD_SHIFT) != 0;
             return canvas.commentKeyPressed(event.key(), cmtCtrl, cmtShift);
         }
 
         if (palette.isSearchFocused() && palette.keyPressed(event)) return true;
 
         int key = event.key();
-        boolean ctrl = (event.modifiers() & GLFW.GLFW_MOD_CONTROL) != 0;
-        if (toolbar.isMenuOpen() && key == GLFW.GLFW_KEY_ESCAPE) { toolbar.closeMenu(); return true; }
-        if (loadFailedName != null && key == GLFW.GLFW_KEY_ESCAPE) { loadFailedName = null; return true; }
-        if (loadDialogOpen && key == GLFW.GLFW_KEY_ESCAPE) { closeLoadDialog(); return true; }
-        if (settingsOpen && key == GLFW.GLFW_KEY_ESCAPE) { settingsOpen = false; return true; }
-        if (shortcutsOpen && key == GLFW.GLFW_KEY_ESCAPE) { shortcutsOpen = false; return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_A) { selectConnected(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_C) { copySelection(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_V) { paste(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_Z) { undo(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_Y) { redo(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_S) { saveScript(); return true; }
-        if (ctrl && key == GLFW.GLFW_KEY_D) { beginSort(false); return true; }
-        if (key == GLFW.GLFW_KEY_ESCAPE) { onClose(); return true; }
-        if (key == GLFW.GLFW_KEY_DELETE || key == GLFW.GLFW_KEY_BACKSPACE) {
-            boolean shift = (event.modifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
+        boolean ctrl = (event.modifiers() & SDLKeycode.SDL_KMOD_CTRL) != 0;
+        if (toolbar.isMenuOpen() && key == SDLScancode.SDL_SCANCODE_ESCAPE) { toolbar.closeMenu(); return true; }
+        if (loadFailedName != null && key == SDLScancode.SDL_SCANCODE_ESCAPE) { loadFailedName = null; return true; }
+        if (loadDialogOpen && key == SDLScancode.SDL_SCANCODE_ESCAPE) { closeLoadDialog(); return true; }
+        if (settingsOpen && key == SDLScancode.SDL_SCANCODE_ESCAPE) { settingsOpen = false; return true; }
+        if (shortcutsOpen && key == SDLScancode.SDL_SCANCODE_ESCAPE) { shortcutsOpen = false; return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_A) { selectConnected(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_C) { copySelection(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_V) { paste(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_Z) { undo(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_Y) { redo(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_S) { saveScript(); return true; }
+        if (ctrl && key == SDLScancode.SDL_SCANCODE_D) { beginSort(false); return true; }
+        if (key == SDLScancode.SDL_SCANCODE_ESCAPE) { onClose(); return true; }
+        if (key == SDLScancode.SDL_SCANCODE_DELETE || key == SDLScancode.SDL_SCANCODE_BACKSPACE) {
+            boolean shift = (event.modifiers() & SDLKeycode.SDL_KMOD_SHIFT) != 0;
             if (shift) deleteSelectedBridging(); else deleteSelected();
             return true;
         }

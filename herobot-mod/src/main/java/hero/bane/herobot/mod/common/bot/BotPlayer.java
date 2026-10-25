@@ -174,7 +174,7 @@ public class BotPlayer extends ServerPlayer {
 
     private final List<DelayedKnockback> pendingKnockbacks = new ArrayList<>();
 
-    private record DelayedPush(long tick, Vec3 push) {
+    private record DelayedPush(long tick, Vec3 push, boolean explosion) {
     }
 
     private final List<DelayedPush> pendingPushes = new ArrayList<>();
@@ -644,7 +644,7 @@ public class BotPlayer extends ServerPlayer {
         if (!pendingPushes.isEmpty()) {
             pendingPushes.removeIf(dp -> {
                 if (currentTick >= dp.tick()) {
-                    super.push(dp.push());
+                    applyPush(dp.push(), dp.explosion());
                     return true;
                 }
                 return false;
@@ -653,11 +653,28 @@ public class BotPlayer extends ServerPlayer {
     }
 
     public void delayedPush(Vec3 vec3) {
+        delayedPush(vec3, false);
+    }
+
+    /** Explosion knockback, which 26.3 applies through {@link #pushFromExplosion(Vec3)} rather than a plain push. */
+    public void delayedExplosionPush(Vec3 vec3) {
+        delayedPush(vec3, true);
+    }
+
+    private void delayedPush(Vec3 vec3, boolean explosion) {
         long executeAt = releaseTick(knockbackDelayTicks());
         if (executeAt <= this.level().getServer().getTickCount()) {
-            super.push(vec3);
+            applyPush(vec3, explosion);
         } else {
-            pendingPushes.add(new DelayedPush(executeAt, vec3));
+            pendingPushes.add(new DelayedPush(executeAt, vec3, explosion));
+        }
+    }
+
+    private void applyPush(Vec3 vec3, boolean explosion) {
+        if (explosion) {
+            super.pushFromExplosion(vec3);
+        } else {
+            super.push(vec3);
         }
     }
 
@@ -789,7 +806,7 @@ public class BotPlayer extends ServerPlayer {
             }
 
             boolean cleanHit = true;
-            if ((float) this.invulnerableTime > (float) HeroBotSettings.damageTicks && !damageSource.is(DamageTypeTags.BYPASSES_COOLDOWN)) {
+            if ((float) this.damageCooldownTime > (float) HeroBotSettings.damageTicks && !damageSource.is(DamageTypeTags.BYPASSES_COOLDOWN)) {
                 if (finalDamage <= this.lastHurt) {
                     return false;
                 }
@@ -799,7 +816,7 @@ public class BotPlayer extends ServerPlayer {
                 cleanHit = false;
             } else {
                 this.lastHurt = finalDamage;
-                this.invulnerableTime = HeroBotSettings.damageInvulnerableTicks();
+                this.damageCooldownTime = HeroBotSettings.damageInvulnerableTicks();
                 this.actuallyHurt(serverLevel, damageSource, finalDamage);
                 if (!blocked) {
                     this.hurtDuration = HeroBotSettings.damageTicks;
@@ -981,7 +998,7 @@ public class BotPlayer extends ServerPlayer {
 
     @Override
     protected void blockUsingItem(@NonNull ServerLevel serverLevel, LivingEntity livingEntity,
-                                  @NonNull DamageSource damageSource, float damage) {
+                                  @NonNull DamageSource damageSource, float damage, boolean fullyBlocked) {
         ItemStack itemStack = this.getItemBlockingWith();
         BlocksAttacks blocksAttacks = itemStack != null ? itemStack.get(DataComponents.BLOCKS_ATTACKS) : null;
         float f = livingEntity.getSecondsToDisableBlocking();

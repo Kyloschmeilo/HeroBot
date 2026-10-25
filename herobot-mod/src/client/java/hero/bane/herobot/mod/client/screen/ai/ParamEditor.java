@@ -7,10 +7,10 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import org.lwjgl.sdl.SDLScancode;
 
 public final class ParamEditor {
     private static final int W = 200;
@@ -70,6 +70,7 @@ public final class ParamEditor {
 
     public void close() {
         active = false;
+        if (box != null) box.setFocused(false);
         box = null;
         onCommit = null;
         validator = null;
@@ -139,11 +140,11 @@ public final class ParamEditor {
     public boolean keyPressed(KeyEvent e) {
         if (!active) return false;
         int key = e.key();
-        if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
+        if (key == SDLScancode.SDL_SCANCODE_RETURN || key == SDLScancode.SDL_SCANCODE_KP_ENTER) {
             commit();
             return true;
         }
-        if (key == GLFW.GLFW_KEY_ESCAPE) {
+        if (key == SDLScancode.SDL_SCANCODE_ESCAPE) {
             close();
             return true;
         }

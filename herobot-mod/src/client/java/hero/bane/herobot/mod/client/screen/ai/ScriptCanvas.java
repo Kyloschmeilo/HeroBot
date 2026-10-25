@@ -17,7 +17,6 @@ import hero.bane.herobot.mod.client.screen.ai.starfield.StarField;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,6 +29,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.lwjgl.sdl.SDLScancode;
+import com.mojang.blaze3d.platform.InputConstants;
 
 public final class ScriptCanvas {
     private final AiEditorScreen host;
@@ -1183,7 +1184,7 @@ public final class ScriptCanvas {
 
     public boolean mouseClicked(double mx, double my, int button, boolean ctrl, boolean shift, boolean doubled) {
         if (menu.open) {
-            if (button == 0) return menu.click(mx, my);
+            if (button == InputConstants.MOUSE_BUTTON_LEFT) return menu.click(mx, my);
             menu.open = false;
         }
         if (!inside(mx, my)) return false;
@@ -1191,9 +1192,9 @@ public final class ScriptCanvas {
 
         double worldX = wx(mx), worldY = wy(my);
 
-        if (editing != null && button == 0 && formatBarClick(mx, my)) return true;
+        if (editing != null && button == InputConstants.MOUSE_BUTTON_LEFT && formatBarClick(mx, my)) return true;
 
-        if (editing != null && button == 0) {
+        if (editing != null && button == InputConstants.MOUSE_BUTTON_LEFT) {
             if (withinComment(editing, worldX, worldY)) {
                 caret = caretFromWorld(editing, worldX, worldY);
                 if (!shift) selAnchor = caret;
@@ -1202,7 +1203,7 @@ public final class ScriptCanvas {
             stopEditingComment();
         }
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && shift) {
+        if (button == InputConstants.MOUSE_BUTTON_RIGHT && shift) {
             shiftRightSpawn = true;
             shiftRightDragged = false;
             spawnStartTick = starTick;
@@ -1213,9 +1214,9 @@ public final class ScriptCanvas {
             return true;
         }
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) { rightPressed = true; rightDownX = mx; rightDownY = my; return true; }
+        if (button == InputConstants.MOUSE_BUTTON_RIGHT) { rightPressed = true; rightDownX = mx; rightDownY = my; return true; }
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && shift && doubled) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && shift && doubled) {
             Hit bypass = deepHit(worldX, worldY);
             if (bypass != null && bypass.parent() == null) {
                 host.bypassBlock(bypass.block().id());
@@ -1224,8 +1225,8 @@ public final class ScriptCanvas {
             }
         }
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE
-                || (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && shift)) { panning = true; return true; }
+        if (button == InputConstants.MOUSE_BUTTON_MIDDLE
+                || (button == InputConstants.MOUSE_BUTTON_LEFT && shift)) { panning = true; return true; }
 
         Comment cm = commentAt(worldX, worldY);
         if (cm != null) {
@@ -1372,7 +1373,7 @@ public final class ScriptCanvas {
             return true;
         }
 
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && stars.blackHoleGrabbed(mx, my)) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && stars.blackHoleGrabbed(mx, my)) {
             double[] pos = stars.blackHolePos();
             if (pos != null) {
                 holeDrag = true;
@@ -1685,7 +1686,7 @@ public final class ScriptCanvas {
     }
 
     public boolean mouseReleased(double mx, double my, int button) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && shiftRightSpawn) {
+        if (button == InputConstants.MOUSE_BUTTON_RIGHT && shiftRightSpawn) {
             shiftRightSpawn = false;
             if (shiftRightDragged) {
                 stars.spawnConverging(Math.max(1, spawnCount), left, top, right, bottom, SPAWN_BURST_MEET);
@@ -1695,7 +1696,7 @@ public final class ScriptCanvas {
             }
             return true;
         }
-        if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && rightPressed) {
+        if (button == InputConstants.MOUSE_BUTTON_RIGHT && rightPressed) {
             rightPressed = false;
             panning = false;
             if (Math.hypot(mx - rightDownX, my - rightDownY) < RIGHT_CLICK_SLOP) openContextMenu(mx, my);
@@ -2176,16 +2177,24 @@ public final class ScriptCanvas {
         selAnchor = caret;
         activeStyle = 0;
         commentEditDidSnapshot = false;
+        setTextInput(true);
     }
 
     public void stopEditingComment() {
         editing = null;
         commentEditDidSnapshot = false;
+        setTextInput(false);
     }
 
     public void cancelCommentEdit() {
         editing = null;
         commentEditDidSnapshot = false;
+        setTextInput(false);
+    }
+
+    /** Since 26.3 (SDL) typed characters only arrive while text input is switched on for an owner. */
+    private void setTextInput(boolean active) {
+        Minecraft.getInstance().onTextInputFocusChange(this, active);
     }
 
     private void commentEditSnapshot() {
@@ -2249,46 +2258,46 @@ public final class ScriptCanvas {
         String t = editing.text();
         if (ctrl) {
             switch (key) {
-                case GLFW.GLFW_KEY_A -> { selAnchor = 0; caret = t.length(); }
-                case GLFW.GLFW_KEY_C -> copySelectionToClipboard();
-                case GLFW.GLFW_KEY_X -> {
+                case SDLScancode.SDL_SCANCODE_A -> { selAnchor = 0; caret = t.length(); }
+                case SDLScancode.SDL_SCANCODE_C -> copySelectionToClipboard();
+                case SDLScancode.SDL_SCANCODE_X -> {
                     if (hasSelection()) { copySelectionToClipboard(); commentEditSnapshot(); deleteSelection(); }
                 }
-                case GLFW.GLFW_KEY_V -> pasteClipboard();
-                case GLFW.GLFW_KEY_B -> toggleStyle(Comment.BOLD);
-                case GLFW.GLFW_KEY_I -> toggleStyle(Comment.ITALIC);
-                case GLFW.GLFW_KEY_U -> toggleStyle(Comment.UNDERLINE);
-                case GLFW.GLFW_KEY_S -> { if (shift) toggleStyle(Comment.STRIKE); }
-                case GLFW.GLFW_KEY_LEFT -> moveCaret(wordStart(t, caret), shift);
-                case GLFW.GLFW_KEY_RIGHT -> moveCaret(wordEnd(t, caret), shift);
-                case GLFW.GLFW_KEY_HOME -> moveCaret(0, shift);
-                case GLFW.GLFW_KEY_END -> moveCaret(t.length(), shift);
-                case GLFW.GLFW_KEY_BACKSPACE -> deleteTo(wordStart(t, caret));
-                case GLFW.GLFW_KEY_DELETE -> deleteTo(wordEnd(t, caret));
+                case SDLScancode.SDL_SCANCODE_V -> pasteClipboard();
+                case SDLScancode.SDL_SCANCODE_B -> toggleStyle(Comment.BOLD);
+                case SDLScancode.SDL_SCANCODE_I -> toggleStyle(Comment.ITALIC);
+                case SDLScancode.SDL_SCANCODE_U -> toggleStyle(Comment.UNDERLINE);
+                case SDLScancode.SDL_SCANCODE_S -> { if (shift) toggleStyle(Comment.STRIKE); }
+                case SDLScancode.SDL_SCANCODE_LEFT -> moveCaret(wordStart(t, caret), shift);
+                case SDLScancode.SDL_SCANCODE_RIGHT -> moveCaret(wordEnd(t, caret), shift);
+                case SDLScancode.SDL_SCANCODE_HOME -> moveCaret(0, shift);
+                case SDLScancode.SDL_SCANCODE_END -> moveCaret(t.length(), shift);
+                case SDLScancode.SDL_SCANCODE_BACKSPACE -> deleteTo(wordStart(t, caret));
+                case SDLScancode.SDL_SCANCODE_DELETE -> deleteTo(wordEnd(t, caret));
                 default -> { }
             }
             return true;
         }
         switch (key) {
-            case GLFW.GLFW_KEY_ESCAPE -> stopEditingComment();
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
+            case SDLScancode.SDL_SCANCODE_ESCAPE -> stopEditingComment();
+            case SDLScancode.SDL_SCANCODE_RETURN, SDLScancode.SDL_SCANCODE_KP_ENTER -> {
                 if (shift) insertText("\n", activeStyle);
                 else stopEditingComment();
             }
-            case GLFW.GLFW_KEY_BACKSPACE -> deleteTo(Math.max(0, caret - 1));
-            case GLFW.GLFW_KEY_DELETE -> deleteTo(Math.min(t.length(), caret + 1));
-            case GLFW.GLFW_KEY_LEFT -> {
+            case SDLScancode.SDL_SCANCODE_BACKSPACE -> deleteTo(Math.max(0, caret - 1));
+            case SDLScancode.SDL_SCANCODE_DELETE -> deleteTo(Math.min(t.length(), caret + 1));
+            case SDLScancode.SDL_SCANCODE_LEFT -> {
                 if (!shift && hasSelection()) moveCaret(selStart(), false);
                 else moveCaret(Math.max(0, caret - 1), shift);
             }
-            case GLFW.GLFW_KEY_RIGHT -> {
+            case SDLScancode.SDL_SCANCODE_RIGHT -> {
                 if (!shift && hasSelection()) moveCaret(selEnd(), false);
                 else moveCaret(Math.min(t.length(), caret + 1), shift);
             }
-            case GLFW.GLFW_KEY_UP -> moveCaretLine(-1, shift);
-            case GLFW.GLFW_KEY_DOWN -> moveCaretLine(1, shift);
-            case GLFW.GLFW_KEY_HOME -> moveCaret(caretLine()[0], shift);
-            case GLFW.GLFW_KEY_END -> moveCaret(caretLine()[1], shift);
+            case SDLScancode.SDL_SCANCODE_UP -> moveCaretLine(-1, shift);
+            case SDLScancode.SDL_SCANCODE_DOWN -> moveCaretLine(1, shift);
+            case SDLScancode.SDL_SCANCODE_HOME -> moveCaret(caretLine()[0], shift);
+            case SDLScancode.SDL_SCANCODE_END -> moveCaret(caretLine()[1], shift);
             default -> {  }
         }
         return true;

@@ -13,11 +13,16 @@ import net.minecraft.client.Options;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.protocol.game.ServerboundPunchPacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.phys.*;
-import org.lwjgl.glfw.GLFW;
+
+import org.lwjgl.sdl.SDLKeyboard;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -167,14 +172,14 @@ public final class ClientPlayerController implements PlayerController {
         InputConstants.Key key = KeyMappingHelper.getBoundKeyOf(mapping);
         if (key.equals(InputConstants.UNKNOWN)) return;
         long window = mc.getWindow().handle();
-        int action = down ? GLFW.GLFW_PRESS : GLFW.GLFW_RELEASE;
+        int action = down ? InputConstants.PRESS : InputConstants.RELEASE;
         switch (key.getType()) {
             case MOUSE -> ((MouseHandlerInvoker) mc.mouseHandler)
                     .herobot$onButton(window, new MouseButtonInfo(key.getValue(), 0), action);
-            case KEYSYM -> ((KeyboardHandlerInvoker) mc.keyboardHandler)
-                    .herobot$keyPress(window, action, new KeyEvent(key.getValue(), 0, 0));
-            case SCANCODE -> ((KeyboardHandlerInvoker) mc.keyboardHandler)
-                    .herobot$keyPress(window, action, new KeyEvent(InputConstants.UNKNOWN.getValue(), key.getValue(), 0));
+            // 26.3 (SDL): a key mapping stores the scancode; the event also carries the layout keycode.
+            case KEYBOARD -> ((KeyboardHandlerInvoker) mc.keyboardHandler)
+                    .herobot$keyPress(window, action, new KeyEvent(key.getValue(),
+                            SDLKeyboard.SDL_GetKeyFromScancode(key.getValue(), (short) 0, false), 0));
         }
     }
 
@@ -186,10 +191,26 @@ public final class ClientPlayerController implements PlayerController {
             return;
         }
         switch (type) {
-            case SWING -> { if (p != null) p.swing(InteractionHand.MAIN_HAND); }
-            case DROP_ITEM -> { if (p != null && p.drop(false)) p.swing(InteractionHand.MAIN_HAND); }
-            case DROP_STACK -> { if (p != null && p.drop(true)) p.swing(InteractionHand.MAIN_HAND); }
+            case SWING -> { if (p != null) punch(p); }
+            case DROP_ITEM -> { if (p != null && dropSelected(p, false)) p.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false); }
+            case DROP_STACK -> { if (p != null && dropSelected(p, true)) p.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT, false); }
         }
+    }
+
+    /** A left click into the air, as vanilla sends it since 26.3: a local swing plus a punch packet. */
+    private static void punch(LocalPlayer p) {
+        p.swing(InteractionHand.MAIN_HAND, p.getMainHandItem().getAttackAnimation(), false);
+        p.connection.send(ServerboundPunchPacket.INSTANCE);
+    }
+
+    /** What LocalPlayer#drop did before 26.3 moved it into MultiPlayerGameMode. */
+    private static boolean dropSelected(LocalPlayer p, boolean all) {
+        if (p.isSpectator() || p.getInventory().getSelectedItem().isEmpty()) return false;
+        p.getInventory().removeFromSelected(all);
+        p.connection.send(new ServerboundPlayerActionPacket(
+                all ? ServerboundPlayerActionPacket.Action.DROP_ALL_ITEMS : ServerboundPlayerActionPacket.Action.DROP_ITEM,
+                BlockPos.ZERO, Direction.DOWN));
+        return true;
     }
 
     private void releasePulses() {

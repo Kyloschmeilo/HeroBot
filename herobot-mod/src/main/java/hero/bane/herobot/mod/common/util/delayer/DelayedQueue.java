@@ -76,17 +76,14 @@ public final class DelayedQueue {
 
                 if (entity == null) return;
 
-                source = new CommandSourceStack(
-                        server,
-                        entity.position(),
-                        entity.getRotationVector(),
-                        (ServerLevel) entity.level(),
-                        PermissionSet.ALL_PERMISSIONS,
-                        entity.getName().getString(),
-                        entity.getDisplayName(),
-                        server,
-                        entity
-                ).withCallback(CommandResultCallback.EMPTY);
+                // 26.3 dropped the explicit names from the constructor; withEntity derives them from the entity.
+                source = server.createCommandSourceStack()
+                        .withEntity(entity)
+                        .withPosition(entity.position())
+                        .withRotation(entity.getRotationVector())
+                        .withLevel((ServerLevel) entity.level())
+                        .withPermission(PermissionSet.ALL_PERMISSIONS)
+                        .withCallback(CommandResultCallback.EMPTY);
 
             } else if (executor.type == ExecutorType.COMMAND_BLOCK) {
 
@@ -99,10 +96,8 @@ public final class DelayedQueue {
                         Vec2.ZERO,
                         level,
                         PermissionSet.ALL_PERMISSIONS,
-                        "@",
                         Component.literal("@"),
-                        server,
-                        null
+                        server
                 ).withCallback(CommandResultCallback.EMPTY);
 
             } else {

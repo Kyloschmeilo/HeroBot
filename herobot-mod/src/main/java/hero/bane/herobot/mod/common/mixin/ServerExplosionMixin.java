@@ -55,12 +55,12 @@ public class ServerExplosionMixin {
         return list;
     }
 
-    @Redirect(method = "hurtEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;push(Lnet/minecraft/world/phys/Vec3;)V"))
+    @Redirect(method = "hurtEntities", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pushFromExplosion(Lnet/minecraft/world/phys/Vec3;)V"))
     private void explosionKBPing(Entity entity, Vec3 vec3) {
         if (entity instanceof BotPlayer botPlayer) {
-            botPlayer.delayedPush(vec3);
+            botPlayer.delayedExplosionPush(vec3);
         } else {
-            entity.push(vec3);
+            entity.pushFromExplosion(vec3);
         }
     }
 
